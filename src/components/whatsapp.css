@@ -1,0 +1,44 @@
+/* WhatsApp Icon */
+.whatsapp-icon {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    background-color: #25D366;
+    color: white;
+    width: 50px;
+    height: 50px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border-radius: 50%;
+    font-size: 24px;
+    text-decoration: none;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+    transition: 0.3s ease;
+  }
+  
+  .whatsapp-icon:hover {
+    background-color: #1EBE57;
+  }
+  
+  /* Teks saat hover */
+  .whatsapp-icon::after {
+    content: "Chat dengan Admin";
+    position: absolute;
+    right: 60px; /* Jarak dari ikon */
+    background-color: rgba(0, 0, 0, 0.8);
+    color: white;
+    padding: 5px 10px;
+    border-radius: 5px;
+    font-size: 14px;
+    white-space: nowrap;
+    opacity: 0;
+    transform: translateX(10px);
+    transition: opacity 0.3s ease, transform 0.3s ease;
+  }
+  
+  .whatsapp-icon:hover::after {
+    opacity: 1;
+    transform: translateX(0);
+  }
+  

@@ -1,0 +1,83 @@
+/* Styling form container background */
+.cuti-form {
+  background-color: #27293D !important; /* Update the form background */
+  padding: 24px;
+  border-radius: 8px;
+  box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+/* Styling form input and select fields */
+.form-control,
+.form-select,
+textarea {
+  background-color: #1E1E2D !important; /* Input background remains the same as before */
+  color: #FFFFFF !important;
+  border: 2px solid #2A324D !important;
+  border-radius: 6px !important;
+  font-size: 14px;
+  font-family: inherit;
+}
+
+/* Placeholder styling */
+textarea::placeholder,
+input::placeholder,
+.form-select::placeholder {
+  color: #FFFFFF !important;
+  font-size: 14px;
+  font-family: inherit;
+}
+
+/* Label styling */
+.form-label {
+  font-weight: 500;
+  font-size: 14px;
+}
+
+/* Alert styling */
+.alert {
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+}
+
+.alert i {
+  font-size: 18px;
+}
+
+/* Semua elemen input dan select tetap dengan style putih */
+.cuti-form input,
+.cuti-form select,
+.cuti-form textarea {
+  color: white;
+  background-color: #27293D;
+  border: 1px solid #2A324D;
+}
+
+.cuti-form input::placeholder,
+.cuti-form textarea::placeholder {
+  color: white;
+  opacity: 0.8;
+}
+
+/* ICON KALENDER di input[type=date] jadi putih */
+.cuti-form input[type="date"]::-webkit-calendar-picker-indicator {
+  filter: invert(1);
+}
+
+/* SELECT: mengubah panah dropdown jadi putih - untuk WebKit (Chrome, Edge) */
+.cuti-form select {
+  appearance: none; /* Hilangkan panah default */
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  background-image: url("data:image/svg+xml;charset=UTF-8,%3Csvg viewBox='0 0 140 140' xmlns='http://www.w3.org/2000/svg'%3E%3Cpolyline points='20,50 70,100 120,50' fill='none' stroke='white' stroke-width='20' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 1rem center;
+  background-size: 12px;
+  padding-right: 2rem; /* beri ruang untuk ikon */
+}
+
+/* Firefox: biar tetap putih dan kelihatan clean */
+.cuti-form select:-moz-focusring {
+  color: white;
+  text-shadow: 0 0 0 white;
+}

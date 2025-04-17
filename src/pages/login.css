@@ -1,0 +1,83 @@
+/* Login.css */
+.login-container {
+  background-color: #1E1E2D;
+  height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 1rem;
+}
+
+.pass {
+  margin-top: 0.8rem;
+}
+
+.login-card {
+  font-family: 'Inter', sans-serif;
+  font-size: 0.6em;
+  width: 350px;
+  padding: 2rem;
+  box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.2);
+  text-align: left;
+}
+
+/* Logo Container */
+.logo-container {
+  display: flex;
+  justify-content: left;
+  gap: 15px; /* Jarak antar logo */
+  margin-bottom: 2rem;
+}
+
+.logo {
+  width: 3rem; /* Sesuaikan ukuran logo */
+  height: auto;
+}
+
+.logo-komdigi {
+  width: 4.5rem; /* Sesuaikan ukuran logo */
+}
+
+h3 {
+  font-family: 'Space Grotesk', sans-serif;
+  font-weight: 900;
+  font-size: 1.5em;
+  padding: 0rem 0rem 0.5rem 0rem;
+}
+
+.masuk {
+  background-color: #1E1E2D;
+  margin-top: 1rem;
+  font-size: 1.2em;
+  padding: 0.6rem;
+  border-color: #1E1E2D;
+}
+
+.masuk:hover {
+  background-color: black;
+  border-color: #1E1E2D;
+  transition: all 0.7s ease;
+}
+
+/* Styling untuk input */
+input {
+  background-color: #FFFFFF; /* Background putih */
+  border: 1px solid #C2C7D1; /* Garis tepi berwarna #C2C7D1 */
+  color: #000000; /* Teks berwarna hitam */
+  font-size: 0.9em; /* Ukuran font */
+  padding: 0.6rem; /* Padding di dalam input */
+  border-radius: 5px; /* Sedikit melengkungkan tepi input */
+  width: 100%;
+}
+
+/* Placeholder Styling */
+input::placeholder {
+  color: #989FAD; /* Warna placeholder */
+  font-size: 0.85em; /* Ukuran font placeholder */
+}
+
+/* Fokus pada input */
+input:focus {
+  border-color: #2A324D; /* Warna border saat fokus */
+  outline: none; /* Menghilangkan outline default */
+}

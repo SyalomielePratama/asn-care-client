@@ -1,0 +1,36 @@
+/* Container form */
+.form-container {
+    background-color: #27293D;
+    padding: 1.5rem;
+    border-radius: 0.5rem;
+  }
+  
+  /* Input, textarea, dan select styling */
+  .form-control,
+  .form-select {
+    background-color: #FFFFFF;
+    border: 1px solid #2A324D;
+    color: #000000;
+  }
+  
+  /* Fokus input */
+  .form-control:focus,
+  .form-select:focus {
+    border-color: #2A6CF6;
+    box-shadow: none;
+  }
+  
+  .custom-select-white {
+    background-color: #1E1E2D;
+    color: #ffffff;
+    border: 1px solid #2A324D;
+    appearance: none;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg fill='white' viewBox='0 0 16 16' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1.5 5l6 6 6-6'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 0.75rem center;
+    background-size: 1rem;
+    padding-right: 2.5rem; /* biar nggak nabrak ikon */
+  }
+  
