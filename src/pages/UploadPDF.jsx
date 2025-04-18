@@ -1,10 +1,14 @@
-import React, { useState, useRef, useEffect, useCallback } from "react";
-import Sidebar from "../components/Sidebar";
-import Navbar from "../components/Navbar";
-import "bootstrap-icons/font/bootstrap-icons.css";
+import React, { useState, useRef } from "react";
+import { Designer } from "@pdfme/ui";
+import { generate } from "@pdfme/generator";
 import QRCode from "qrcode";
+import Navbar from "../components/Navbar";
+import Sidebar from "../components/Sidebar";
+import { text, image } from '@pdfme/schemas';
 
 const TandaTanganDokumen = () => {
+    const designerRef = useRef(null);
+    const [qrImageUrl, setQrImageUrl] = useState("");
     const [form, setForm] = useState({
         noSurat: "",
         tanggalSurat: "",
@@ -12,80 +16,93 @@ const TandaTanganDokumen = () => {
         perihal: "",
     });
 
-    const [notification, setNotification] = useState({
-        message: "",
-        type: "",
-        show: false,
-    });
-
-    const [pdfFile, setPdfFile] = useState(null);
-    const [qrImageUrl, setQrImageUrl] = useState(null);
-    const [showQr, setShowQr] = useState(false);
-    const previewContainerRef = useRef(null);
-    const [previewImages, setPreviewImages] = useState([]);
-    const [currentPage, setCurrentPage] = useState(0);
-
     const handleChange = (e) => {
         setForm({ ...form, [e.target.name]: e.target.value });
     };
 
-    const handleCloseNotification = () => {
-        setNotification({ ...notification, show: false });
+    const generateQR = async () => {
+        const { noSurat, tanggalSurat, penandatangan, perihal } = form;
+        if (!tanggalSurat || !penandatangan || !perihal)
+            return alert("Lengkapi semua data!");
+
+        const qrText = `No Surat: ${noSurat}\nTanggal: ${tanggalSurat}\nPenandatangan: ${penandatangan}\nPerihal: ${perihal}`;
+        const qrDataUrl = await QRCode.toDataURL(qrText);
+        setQrImageUrl(qrDataUrl);
     };
 
-    const loadPdfPreviewImages = useCallback(async (file) => {
-        const fileReader = new FileReader();
-        fileReader.onload = async (e) => {
-            const pdfData = e.target.result;
-            const pdfBlob = new Blob([pdfData], { type: "application/pdf" });
-            const pdfUrl = URL.createObjectURL(pdfBlob);
-            setPreviewImages([pdfUrl]); // Assuming only one page for preview
-            setCurrentPage(0);
-        };
-        fileReader.readAsArrayBuffer(file);
-    }, []);
-
-    const handleFileUpload = (e) => {
-        const file = e.target.files[0];
-        if (file && file.type === "application/pdf") {
-            setPdfFile(file);
-            loadPdfPreviewImages(file);
-            setShowQr(false);
-            setQrImageUrl(null);
-        } else {
-            setNotification({ message: "Harap upload file PDF yang valid!", type: "error", show: true });
-            setPdfFile(null);
-            setPreviewImages([]);
-            setCurrentPage(0);
-        }
-    };
-
-    const handleQRGenerate = async () => {
-        if (form.noSurat && form.tanggalSurat && form.penandatangan && form.perihal) {
-            const qrText = `No Surat: ${form.noSurat}\nTanggal: ${form.tanggalSurat}\nPenandatangan: ${form.penandatangan}\nPerihal: ${form.perihal}`.trim();
-            const qrDataUrl = await QRCode.toDataURL(qrText);
-            setQrImageUrl(qrDataUrl);
-            setShowQr(true);
-            setNotification({ message: "QR Code berhasil dibuat!", type: "success", show: true });
-        } else {
-            setNotification({ message: "Harap lengkapi semua data sebelum membuat QR Code!", type: "error", show: true });
-        }
-    };
-
-    const handleDownload = () => {
-        if (!qrImageUrl) {
-            setNotification({ message: "QR Code belum dibuat!", type: "error", show: true });
-            return;
-        }
+    const downloadQR = () => {
+        if (!qrImageUrl) return alert("QR belum dibuat!");
 
         const link = document.createElement("a");
         link.href = qrImageUrl;
-        link.download = "qr_code.png"; // Set the name for the downloaded QR code image
-        document.body.appendChild(link);
+        link.download = "qr_code.png";
         link.click();
-        document.body.removeChild(link);
-        setNotification({ message: "QR Code berhasil diunduh!", type: "success", show: true });
     };
+
+    const createDesigner = async () => {
+        const fileInput = document.getElementById("pdfInput");
+        const file = fileInput.files[0];
+    
+        if (!file || file.type !== "application/pdf") {
+            alert("Upload file PDF yang valid!");
+            return;
+        }
+    
+        const reader = new FileReader();
+        reader.onload = async function (e) {
+            const basePdfArrayBuffer = e.target.result;
+    
+            const template = {
+                basePdf: basePdfArrayBuffer,
+                schemas: [{}], // Kosongin biar user desain sendiri
+            };
+    
+            const designer = new Designer({
+                domContainer: designerRef.current,
+                template,
+                plugins: {
+                    text,
+                    image,
+                },
+            });
+    
+            designerRef.current.__designer__ = designer;
+        };
+    
+        reader.readAsArrayBuffer(file);
+    };
+    
+
+    const downloadFinalPdf = async () => {
+        const designerInstance = designerRef.current?.__designer__;
+        if (!designerInstance) return alert("Designer belum siap");
+    
+        const updatedTemplate = designerInstance.getTemplate();
+    
+        // Cari field yang tipe-nya image (QR Code)
+        const imageField = updatedTemplate.schemas.flat().find(schema => schema.type === "image");
+        if (!imageField) return alert("Tidak ada field gambar pada template");
+    
+        const input = {
+            [imageField.name]: qrImageUrl, // Mengisi dengan URL gambar QR
+        };
+    
+        const pdf = await generate({
+            template: updatedTemplate,
+            inputs: [input], // Menyertakan input QR
+            plugins: {
+                text,
+                image,
+            },
+        });
+    
+        const blob = new Blob([pdf.buffer], { type: "application/pdf" });
+        const link = document.createElement("a");
+        link.href = URL.createObjectURL(blob);
+        link.download = "dokumen_ttd_qr.pdf";
+        link.click();
+    };
+         
 
     return (
         <div style={{ backgroundColor: "#27293D", minHeight: "100vh" }}>
@@ -93,81 +110,69 @@ const TandaTanganDokumen = () => {
             <div className="d-flex">
                 <Sidebar />
                 <div className="p-4 w-100 text-white">
-                    <h2 className="mb-4">Tanda Tangan Dokumen</h2>
+                    <h2 className="mb-4">Tanda Tangan Dokumen (Manual Upload QR ke PDF)</h2>
 
-                    {notification.show && (
-                        <div
-                            className={`alert alert-${notification.type === "success" ? "success" : "danger"} d-flex align-items-center mb-4`}
-                            role="alert"
-                        >
-                            <i className={`bi bi-${notification.type === "success" ? "check-circle" : "exclamation-circle"} me-2`}></i>
-                            <span>{notification.message}</span>
-                            <button type="button " className="btn-close ms-auto" onClick={handleCloseNotification}></button>
-                        </div>
-                    )}
+                    <div className="mb-3">
+                        <label>Upload PDF</label>
+                        <input type="file" id="pdfInput" accept="application/pdf" className="form-control" />
+                    </div>
 
-                    <div className="row">
-                        <div className="col-md-6 mb-4">
-                            <div className="mb-3">
-                                <label className="form-label">Upload Dokumen PDF</label>
-                                <input type="file" accept="application/pdf" className="form-control" onChange={handleFileUpload} />
-                            </div>
-                            <div ref={previewContainerRef}>
-                                {previewImages.length > 0 ? (
-                                    <iframe
-                                        src={previewImages[currentPage]}
-                                        title="PDF Preview"
-                                        style={{ width: "100%", height: "500px" }}
-                                    />
-                                ) : (
-                                    <div className="d-flex h-100 justify-content-center align-items-center text-muted">
-                                        Tidak ada file yang diupload.
-                                    </div>
-                                )}
-                            </div>
-                        </div>
-
+                    <div className="row mb-3">
                         <div className="col-md-6">
-                            <div className="p-4 rounded shadow" style={{ backgroundColor: "#1E1E2D", border: "1px solid #2A324D" }}>
-                                <h4 className="mb-4">Form Buat QR Code</h4>
-                                <div className="mb-3">
-                                    <label className="form-label">No. Surat</label>
-                                    <input type="text" className="form-control" name="noSurat" value={form.noSurat} onChange={handleChange} placeholder="Masukkan No. Surat" />
-                                </div>
-                                <div className="mb-3">
-                                    <label className="form-label">Tanggal Surat</label>
-                                    <input type="date" className="form-control" name="tanggalSurat" value={form.tanggalSurat} onChange={handleChange} />
-                                </div>
-                                <div className="mb-3">
-                                    <label className="form-label">Penandatanganan</label>
-                                    <input type="text" className="form-control" name="penandatangan" value={form.penandatangan} onChange={handleChange} placeholder="Nama Penandatangan" />
-                                </div>
-                                <div className="mb-4">
-                                    <label className="form-label">Perihal</label>
-                                    <input type="text" className="form-control" name="perihal" value={form.perihal} onChange={handleChange} placeholder="Perihal Surat" />
-                                </div>
+                            <input
+                                type="text"
+                                className="form-control mb-2"
+                                name="noSurat"
+                                value={form.noSurat}
+                                onChange={handleChange}
+                                placeholder="No. Surat (Optional Bila Ada)"
+                            />
+                            <input
+                                type="date"
+                                className="form-control mb-2"
+                                name="tanggalSurat"
+                                value={form.tanggalSurat}
+                                onChange={handleChange}
+                            />
+                            <input
+                                type="text"
+                                className="form-control mb-2"
+                                name="penandatangan"
+                                value={form.penandatangan}
+                                onChange={handleChange}
+                                placeholder="Penandatangan"
+                            />
+                            <input
+                                type="text"
+                                className="form-control mb-2"
+                                name="perihal"
+                                value={form.perihal}
+                                onChange={handleChange}
+                                placeholder="Perihal"
+                            />
 
-                                <div className="d-flex justify-content-between">
-                                    <button
-                                        type="button"
-                                        onClick={handleQRGenerate}
-                                        className="btn"
-                                        style={{ backgroundColor: "#FF9F89", color: "#1E1E2D" }}
-                                    >
-                                        <i className="bi bi-qr-code me-2"></i>Buat QR Code
-                                    </button>
-                                    <button
-                                        type="button"
-                                        onClick={handleDownload}
-                                        className="btn"
-                                        style={{ backgroundColor: "#FD77A4", color: "#1E1E2D" }}
-                                    >
-                                        <i className="bi bi-download me-2"></i>Download QR Code
-                                    </button>
+                            <button onClick={generateQR} className="btn btn-warning me-2">Buat QR</button>
+                            <button onClick={downloadQR} className="btn btn-secondary me-2">Download QR</button>
+                            <button onClick={createDesigner} className="btn btn-info">Edit PDF (Manual Upload QR)</button>
+                        </div>
+                        <div className="col-md-6">
+                            {qrImageUrl && (
+                                <div>
+                                    <img src={qrImageUrl} alt="QR Code" style={{ width: "150px", background: "#fff", padding: "10px" }} />
                                 </div>
-                            </div>
+                            )}
                         </div>
                     </div>
+
+                    <p className="text-white mt-3">
+                        <strong>Petunjuk:</strong> Setelah membuka editor PDF, klik tombol <strong>"Gambar"</strong> di samping kiri editor lalu klik 2 kali untuk mengganti gambar QR yang telah anda unduh. upload file QR Code yang sudah di-download. Scroll ke halaman yang ingin anda tanda tangani. Setelah itu, drag QR ke posisi yang diinginkan pada dokumen. setelah pas anda bisa klik download pdf di bawah
+                    </p>
+
+                    <div ref={designerRef} style={{ height: "600px", background: "#fff", borderRadius: "8px" }} />
+
+                    <button onClick={downloadFinalPdf} className="btn btn-success mt-3">
+                        Download PDF Final
+                    </button>
                 </div>
             </div>
         </div>
